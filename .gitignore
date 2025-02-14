@@ -1,0 +1,40 @@
+# Dossiers Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Environnements virtuels
+venv/
+env/
+
+# Dépendances installées via pip
+*.egg-info/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Fichiers de configuration sensibles
+.env
+.env.local
+.env.*.local
+config.json
+
+# Logs et fichiers temporaires
+logs/
+*.log
+*.sqlite3
+*.db
+*.pid
+*.swp
+*.swo
+*.bak
+
+# Cache IDE & éditeurs de code
+.vscode/
+.idea/
+*.iml
+
+# Conteneurs et déploiements
+docker-compose.override.yml
+*.dockerfile
+*.tar
