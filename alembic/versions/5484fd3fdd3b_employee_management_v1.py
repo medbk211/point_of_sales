@@ -1,8 +1,8 @@
-"""employee mangament
+"""employee management v1
 
-Revision ID: 280f46578180
+Revision ID: 5484fd3fdd3b
 Revises: 
-Create Date: 2025-02-14 12:12:31.236288
+Create Date: 2025-02-14 22:24:35.950283
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '280f46578180'
+revision: str = '5484fd3fdd3b'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -31,9 +31,9 @@ def upgrade() -> None:
     sa.Column('birth_date', sa.Date(), nullable=True),
     sa.Column('address', sa.String(length=100), nullable=True),
     sa.Column('contract_type', sa.Enum('CDD', 'CDI', 'SIVP', name='contracttypeenum'), nullable=True),
-    sa.Column('status_account', sa.Enum('Active', 'Suspended', 'Closed', name='statusaccountenum'), nullable=False),
+    sa.Column('status_account', sa.Enum('Active', 'Inactive', name='statusaccountenum'), nullable=False, server_default='Inactive'),
     sa.Column('cnss_number', sa.String(length=11), nullable=True),
-    sa.Column('created_at', sa.Date(), nullable=False),
+    sa.Column('created_at', sa.Date(), server_default=sa.text('now()'), nullable=False),
     sa.CheckConstraint("(contract_type IN ('CDI', 'CDD') AND cnss_number ~ '^[0-9]{8}-[0-9]{2}$') OR (contract_type NOT IN ('CDI', 'CDD'))", name='cnss_required_for_cdi_cdd'),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('email'),
@@ -45,8 +45,8 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('Employee_id', sa.Integer(), nullable=False),
     sa.Column('Email', sa.String(length=100), nullable=False),
-    sa.Column('token', sa.String(length=100), nullable=True),
-    sa.Column('expired_date', sa.Date(), nullable=True),
+    sa.Column('token', sa.String(length=100), nullable=False),
+    sa.Column('expired_date', sa.Date(), nullable=False),
     sa.Column('token_status_id', sa.Enum('Valid', 'Expired', name='tokenstatusenum'), nullable=False),
     sa.ForeignKeyConstraint(['Employee_id'], ['employee.id'], ),
     sa.PrimaryKeyConstraint('id')

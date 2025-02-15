@@ -1,8 +1,7 @@
 from sqlalchemy import Column, Integer, String, Date, Enum, CheckConstraint
 from sqlalchemy.sql import func
-from app.database import Base
+from app.core.database import Base
 from app.enums import ContractTypeEnum, GenderEnum, StatusAccountEnum
-
 class Employee(Base):
     __tablename__ = "employee"
 
@@ -16,9 +15,9 @@ class Employee(Base):
     birth_date = Column(Date, nullable=True)
     address = Column(String(100), nullable=True)
     contract_type = Column(Enum(ContractTypeEnum), nullable=True)  # Non obligatoire
-    status_account = Column(Enum(StatusAccountEnum), nullable=False)
+    status_account = Column(Enum(StatusAccountEnum), nullable=False, default=StatusAccountEnum.Inactive)
     cnss_number = Column(String(11), nullable=True)  # Format 8 chiffres - 2 chiffres (total 11 caractères)
-    created_at = Column(Date, nullable=False, default=func.now())
+    created_at = Column(Date, nullable=False, server_default=func.now())
 
     __table_args__ = (
         CheckConstraint(
@@ -26,4 +25,3 @@ class Employee(Base):
             name="cnss_required_for_cdi_cdd"
         ),
     )
-
