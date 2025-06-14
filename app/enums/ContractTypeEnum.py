@@ -1,7 +1,7 @@
-from enum import Enum
+from app.enums.basicenum import BasicEnum
 
-class ContractTypeEnum(Enum):
+class ContractTypeEnum(BasicEnum):
     CDD = "CDD"
     CDI = "CDI"
     SIVP = "SIVP"
-    APPRNTI = "APPRNTI"
+    APPRNTI = "APPRNTI" 

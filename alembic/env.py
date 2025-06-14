@@ -28,6 +28,7 @@ from app.models.Employee import Employee
 from app.models.EmployeeRole import Employee_role
 from app.models.AcountActivation import Acount_Activation
 from app.models.ChangePasword import ChangePasword
+from app.models.error import Error
 
 target_metadata = Base.metadata
 

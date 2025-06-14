@@ -1,7 +1,7 @@
-from enum import Enum
+from app.enums.basicenum import BasicEnum
 
 # Définition des Enums
-class GenderEnum(Enum):
+class GenderEnum(BasicEnum):
     Male = "Male"
     Female = "Female"
     
