@@ -7,7 +7,7 @@ from sqlalchemy.orm import relationship
 # Ajouter le chemin du dossier parent pour résoudre les imports
 
 
-from ..database import Base
+from ..core.database import Base
 from ..enums import RoleEnum
 
 class Employee_role(Base):

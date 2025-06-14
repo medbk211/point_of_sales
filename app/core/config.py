@@ -9,5 +9,6 @@ class Settings(BaseSettings):
     DATABASE_URL: str = os.getenv("DATABASE_URL")
     SECRET_KEY: str = os.getenv("SECRET_KEY", "supersecretkey")
     DEBUG: bool = os.getenv("DEBUG", "True").lower() == "true"
+    
 
 settings = Settings()
