@@ -25,20 +25,17 @@ conf = ConnectionConfig(
 )
 
 # Fonction asynchrone pour envoyer un email en utilisant un template Jinja2
-async def send_email_with_template(emails: List[EmailStr], body: dict):
+async def send_email_with_template(emails: List[EmailStr], body: dict, subject: str, template_name: str):
     try:
         message = MessageSchema(
-            subject="Reset your password",
+            subject=subject,
             recipients=emails,
             subtype=MessageType.html,
             template_body=body
         )
-
         fm = FastMail(conf)
-        await fm.send_message(message, template_name="email.html")
-        
+        await fm.send_message(message, template_name=template_name)
         return {"message": "Email envoyé avec succès"}
-    
     except Exception as e:
         print(f"❌ Failed to send email to {emails}: {e}")
         return {"error": str(e)}

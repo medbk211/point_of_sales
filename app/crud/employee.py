@@ -6,6 +6,8 @@ from app.models.AcountActivation import Acount_Activation  # Correction
 from app.models.ChangePasword import ChangePasword  # Correction
 from app.models.error import Error
 
+
+
 from app.enums.TokenStatusEnum import TokenStatusEnum
 from app.schemas.employee import EmployeeCreate
 from app.service.Sending_email import send_email_with_template
@@ -102,7 +104,7 @@ async def add_employee(db: Session, employee_data: EmployeeCreate):
         db.commit()
 
         # Envoi d'email en tâche de fond
-        await  send_email_with_template([new_employee.email], {"token": token}) 
+        await  send_email_with_template(emails=[new_employee.email], body={"token": token},subject="Set Your Password",template_name="set_password.html") 
         return JSONResponse(
         status_code=200,
         content={"message": "Employee added", "employee_id": new_employee.id}
@@ -138,7 +140,7 @@ async def confirmation_change_password(db: Session, employee: Employee):
 
     # Envoi de l'email de réinitialisation du mot de passe avec gestion des erreurs
     try:
-        await send_email_with_template([employee.email], {"token": token})
+        await send_email_with_template(emails=[employee.email], body={"token": token},subject="Reset Your Password",template_name="reset_password.html")
     except Exception as e:
         return JSONResponse(status_code=500, content={"message": " email failed", "error": str(e)})
 
