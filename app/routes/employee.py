@@ -1,5 +1,5 @@
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 # Importation des modèles de la base de données
@@ -24,6 +24,9 @@ from app.crud.employee import (
     get_confirmation_code_change_password
 )
 
+from app.schemas.csvschema import valid_employees_data_and_upload
+
+
 # Importation des enums (statuts des tokens et comptes)
 from app.enums import TokenStatusEnum, StatusAccountEnum
 
@@ -31,13 +34,20 @@ from app.enums import TokenStatusEnum, StatusAccountEnum
 from app.schemas.employee import (
     EmployeeOut,
     EmployeeCreate,
-    Confirmation_Acount,
+    SetPasswordInput,
     confirmation_out,
     confirm_rest_pasword,
     confirm_rest_pasword_out,
     rest_pasword,
     rest_pasword_out
 )
+
+
+from app.schemas.csvschema import options, CSVSchema, uploadCSV , mandatory_fields
+
+
+
+
 
 # Initialisation de l'outil de hashage de mots de passe
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -75,9 +85,7 @@ async def create_employee(employee_data: EmployeeCreate, db: Session = Depends(g
     if employee_data.password != employee_data.confirm_password:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Passwords do not match")
 
-    # Vérification si l'email existe déjà
-    if get_employee_email(db, email=employee_data.email):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already exists")
+  
 
     # Ajout de l'employé en base de données
     employee = await add_employee(db, employee_data)
@@ -86,8 +94,8 @@ async def create_employee(employee_data: EmployeeCreate, db: Session = Depends(g
 # ------------------------------------
 # 📌 Envoi d'un email pour réinitialisation du mot de passe
 # ------------------------------------
-@router.post("/employees/confirm_reset_password", response_model=confirm_rest_pasword_out, status_code=status.HTTP_201_CREATED)
-async def confirm_account(confirmation_data: confirm_rest_pasword, db: Session = Depends(get_db)):
+@router.post("/employees/reset_password", response_model=confirm_rest_pasword_out, status_code=status.HTTP_201_CREATED)
+async def reset_password(confirmation_data: confirm_rest_pasword, db: Session = Depends(get_db)):
     """ Envoie un email pour réinitialiser le mot de passe. """
 
     # Vérification si l'email existe en base
@@ -107,7 +115,7 @@ async def confirm_account(confirmation_data: confirm_rest_pasword, db: Session =
 # 📌 Confirmation de la réinitialisation du mot de passe
 # ------------------------------------
 @router.patch("/employees/confirm_reset_password", response_model=rest_pasword_out, status_code=status.HTTP_200_OK)
-def confirmation_account(confirmation_input: rest_pasword, db: Session = Depends(get_db)):
+def confirmation_reset_password(confirmation_input: rest_pasword, db: Session = Depends(get_db)):
     """ Confirme et applique la réinitialisation du mot de passe d'un employé. """
 
     # Vérification du code de confirmation
@@ -149,34 +157,38 @@ def confirmation_account(confirmation_input: rest_pasword, db: Session = Depends
 # ------------------------------------
 # 📌 Confirmation de l'activation du compte employé
 # ------------------------------------
-@router.patch("/employees/confirm", response_model=confirmation_out, status_code=status.HTTP_200_OK)
-def confirmation_account(confirmation_input: Confirmation_Acount, db: Session = Depends(get_db)):
-    """ Active un compte employé après vérification du code de confirmation. """
-
-    confirmation_code = get_confirmation_code(db, confirmation_input.token)
-
+@router.post("/employees/set_password", response_model=confirmation_out, status_code=status.HTTP_200_OK)
+def set_password(input: SetPasswordInput, db: Session = Depends(get_db)):
+    """ chnagement lel password w ysir activation lell compte """
+    confirmation_code = get_confirmation_code(db,input.token)
     if not confirmation_code:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, 
             detail="Confirmation code not found"
         )
-
     if confirmation_code.token_status_id == TokenStatusEnum.Expired:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, 
             detail="Confirmation code expired"
         )
-
-    # Activation du compte employé et expiration du token d'activation
-    db.query(Employee).filter(Employee.id == confirmation_code.Employee_id).update(
-        {"status_account": StatusAccountEnum.Active}
-    )
-    db.query(Acount_Activation).filter(Acount_Activation.id == confirmation_code.id).update(
-        {"token_status_id": TokenStatusEnum.Expired}
-    )
+    
+    if input.password != input.confirm_password:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Passwords do not match"
+        )
+    hashed_pw = pwd_context.hash(input.password)
+    db.query(Employee).filter(Employee.id == confirmation_code.Employee_id).update({
+        "password": hashed_pw,
+        "status_account": StatusAccountEnum.Active
+    })
+    db.query(Acount_Activation).filter(Acount_Activation.id == confirmation_code.id).update({
+        "token_status_id": TokenStatusEnum.Expired
+    })
     db.commit()
     
-    return confirmation_out(status_code=str(200), detail="Account confirmed successfully")
+    return confirmation_out(status_code="200", detail="Password set, account activated.")
+    
 
 # ------------------------------------
 # 📌 Mise à jour d'un employé
@@ -201,3 +213,28 @@ def delete_employee_route(employee_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Employee not found")
     
     return {"message": "Employee deleted successfully"}
+
+@router.get("/possibleFilds", response_model=CSVSchema)
+def get_csv_options(db: Session = Depends(get_db)):
+    """ Récupère les options de filtrage pour le CSV. """
+    return CSVSchema(possible_fields=options)
+
+
+
+@router.post("/uploadCSV")
+async def upload_csv(entry: uploadCSV, db: Session = Depends(get_db)):
+    employees = entry.lines
+
+    if not employees:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="CSV file is empty")
+    
+    # التحقق من وجود الحقول الإجباريّة
+    first_row_keys = set(employees[0].keys())
+    missing_fields = set(mandatory_fields.keys()) - first_row_keys
+    if missing_fields:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Missing mandatory fields: {', '.join(missing_fields)}"
+        )
+
+    return await valid_employees_data_and_upload(employees, entry.forceUpload, db)

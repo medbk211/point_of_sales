@@ -1,7 +1,7 @@
-from enum import Enum  
+from app.enums.basicenum import BasicEnum  
 
 
-class RoleEnum(Enum):
+class RoleEnum(BasicEnum):
     admin = "admin"
     Inventory_Manager = "Inventory_Manager"
     Vendor = "Vendor"
