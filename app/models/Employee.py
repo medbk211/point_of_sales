@@ -2,6 +2,7 @@ from sqlalchemy import Column, Integer, String, Date, Enum, CheckConstraint
 from sqlalchemy.sql import func
 from app.core.database import Base
 from app.enums import ContractTypeEnum, GenderEnum, StatusAccountEnum
+
 class Employee(Base):
     __tablename__ = "employee"
 
@@ -9,19 +10,21 @@ class Employee(Base):
     first_name = Column(String(50), nullable=False)
     last_name = Column(String(50), nullable=False)
     gender = Column(Enum(GenderEnum), nullable=False)
-    number = Column(String(10), unique=True, nullable=False)  # Assurez-vous qu'il est obligatoire
-    phone_number = Column(String(10), unique=True, nullable=True)
-    email = Column(String(100), unique=True, nullable=False)  # L'email est obligatoire
     birth_date = Column(Date, nullable=True)
+    number = Column(String(10), unique=True, nullable=False)
+    phone_number = Column(String(10), unique=True, nullable=True)
     address = Column(String(100), nullable=True)
-    contract_type = Column(Enum(ContractTypeEnum), nullable=True)  # Non obligatoire
+    email = Column(String(100), unique=True, nullable=False)
+    password = Column(String(100), nullable=True)
+    contract_type = Column(Enum(ContractTypeEnum), nullable=True)
     status_account = Column(Enum(StatusAccountEnum), nullable=False, default=StatusAccountEnum.Inactive)
-    cnss_number = Column(String(11), nullable=True)  # Format 8 chiffres - 2 chiffres (total 11 caractères)
+    cnss_number = Column(String(11), nullable=True, unique=True)  # Format attendu : 8 chiffres - 2 chiffres (total 11 caractères)
     created_at = Column(Date, nullable=False, server_default=func.now())
 
     __table_args__ = (
         CheckConstraint(
-            "(contract_type IN ('CDI', 'CDD') AND cnss_number ~ '^[0-9]{8}-[0-9]{2}$') OR (contract_type NOT IN ('CDI', 'CDD'))",
+            "((contract_type::text IN ('CDI', 'CDD') AND cnss_number IS NOT NULL AND cnss_number ~ '^[0-9]{8}-[0-9]{2}$') "
+            "OR (contract_type::text IN ('SIVP', 'APPRENTI') AND cnss_number IS NULL))",
             name="cnss_required_for_cdi_cdd"
         ),
     )

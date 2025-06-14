@@ -1,5 +1,6 @@
 from fastapi import FastAPI
-from app.routes import employee  # Assure-toi d'importer le bon fichier de routes
+from app.routes import employee
+
 
 app = FastAPI()
 
