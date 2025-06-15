@@ -21,6 +21,27 @@ class EmployeeBase(OurBaseModel):
     contract_type: Optional[ContractTypeEnum] = None 
     cnss_number: Optional[str] = Field(None, max_length=11)  
 
+class EmployeeProfile(OurBaseModel):
+    first_name: str = Field(..., max_length=50) 
+    last_name: str = Field(..., max_length=50)
+    gender: GenderEnum
+    birth_date: Optional[date] = None 
+    phone_number: Optional[str] = Field(None, max_length=15)
+    address: Optional[str] = Field(None, max_length=100)  
+     
+class EmailChangeRequest(BaseModel):
+    new_email: EmailStr
+    current_password: str
+class passwordChangeRequest(BaseModel):
+    current_password: str
+    new_password: str = Field(..., min_length=6, max_length=100)  
+    confirm_new_password: str = Field(..., min_length=6, max_length=100)
+class  AdminEmployeeUpdateRequest(BaseModel):
+    contract_type: Optional[str] = None
+    cnss_number: Optional[str] = None
+    number: str = Field(..., max_length=11)
+    role: List[RoleEnum] = Field(default_factory=list) 
+
 
 class EmployeeCreate(EmployeeBase):
     password: Optional[str] = Field(None, min_length=6, max_length=100)  

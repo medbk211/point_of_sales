@@ -40,6 +40,8 @@ def get_employee_email(db: Session, email: str):
     """ Récupère un employé par son adresse email. """
     return db.query(Employee).filter(Employee.email == email).first()
 
+def get_employee_role(db: Session, id:int):
+    return db.query(Employee_role).filter(Employee_role.Employee_id == id).first()
 
 def get_confirmation_code(db: Session, code: str):
     """ Récupère un code de confirmation par son code. """
