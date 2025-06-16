@@ -24,19 +24,12 @@ def is_valid_phone_number(field: Any) -> Optional[str]:
     return is_regex_matched(r"^\+216[24579]\d{7}$", field)
 
 
-def check_cnss_contract_consistency(employee: dict, field: Any) -> Optional[str]:
-    """
-    Validates CNSS number based on contract_type:
-    - For CDI/CDD: mandatory and must match 'XXXXXXXX-XX'.
-    - For SIVP/APPRNTI: must be empty.
-    - Otherwise: permits empty or valid format.
-    Returns cleaned CNSS string, empty string, or None on error.
-    """
-    # Extract contract_type from cleaned employee dict
+def check_cnss_contract_consistency(employee: dict, field: Any):
+
     ct = employee.get("contract_type")
     cnss = str(field).strip() if field not in (None, "") else ""
 
-    # CDI or CDD: mandatory + format
+  
     if ct in {ContractTypeEnum.CDI.value, ContractTypeEnum.CDD.value}:
         if cnss == "":
             return None
@@ -55,8 +48,8 @@ def check_cnss_contract_consistency(employee: dict, field: Any) -> Optional[str]
 
 # --- Date / Integer checks ----------------------------------------------------
 
-def is_valid_date(field: Any) -> Optional[str]:
-    """Expecting 'YYYY-MM-DD'. Return the string if parseable, else None."""
+def is_valid_date(field: Any):
+   
     if not isinstance(field, str):
         return None
     try:
@@ -66,8 +59,8 @@ def is_valid_date(field: Any) -> Optional[str]:
         return None
 
 
-def is_positive_int(field: Any) -> Optional[int]:
-    """Return int(field) if >= 0, else None."""
+def is_positive_int(field: Any):
+    
     try:
         i = int(field)
         return i if i >= 0 else None
@@ -76,7 +69,7 @@ def is_positive_int(field: Any) -> Optional[int]:
 
 # --- Enum / Business-logic checks ---------------------------------------------
 
-def are_roles_valid(field: Any) -> bool:
+def are_roles_valid(field: Any) :
     """Accepts a comma-separated string or list of roles, returns True if valid."""
     if isinstance(field, str):
         roles = [r.strip() for r in field.split(",")]
@@ -89,7 +82,7 @@ def are_roles_valid(field: Any) -> bool:
     return all(r in valid for r in roles)
 
 
-def is_cdi_or_cdd(employee: dict) -> bool:
+def is_cdi_or_cdd(employee: dict):
     """Returns True if employee['contract_type'] is CDI or CDD."""
     ct = employee.get("contract_type")
     return ct in {ContractTypeEnum.CDI.value, ContractTypeEnum.CDD.value}
@@ -105,7 +98,7 @@ error_keys = {
     "employee_pkey":                    "Employee ID already exists.",
 }
 
-def get_error_message(error_message: str) -> str:
+def get_error_message(error_message: str):
     for key, msg in error_keys.items():
         if key in error_message:
             return msg
