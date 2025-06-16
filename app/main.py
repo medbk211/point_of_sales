@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 
 from app.routes import employee
-from app import auth
+from app.routes import auth
 
 
 
